@@ -1,0 +1,38 @@
+from fastapi import FastAPI
+import redis
+from aiokafka import AIOKafkaProducer
+import asyncio
+import json
+
+app = FastAPI()
+cache = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+# Set up our Kafka Producer (the sender)
+producer = AIOKafkaProducer(bootstrap_servers='localhost:9092')
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the Kafka sender when our app turns on
+    await producer.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # Stop the sender when the app turns off
+    await producer.stop()
+
+@app.get("/")
+async def read_root():
+    # 1. Update our Redis Cache
+    hits = cache.incr("hits")
+    
+    # 2. Build an event message payload
+    payload = {"event": "page_view", "current_total_views": hits}
+    
+    # 3. Shoot the message into the Kafka "page-views" topic asynchronously
+    await producer.send_and_wait("page-views", json.dumps(payload).encode('utf-8'))
+    
+    return {
+        "message": "Welcome to the Bulletproof Application Platform!",
+        "total_page_views": hits,
+        "kafka_status": "Event sent to queue successfully!"
+    }
