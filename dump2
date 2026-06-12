@@ -1,18 +1,20 @@
-sudo apt update
-sudo apt install ca-certificates curl gnupg -y
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+# Step 1: Use an official, lightweight Python base image
+FROM python:3.11-slim
 
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Step 2: Set the directory inside the container where commands will run
+WORKDIR /app
 
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+# Step 3: Copy the requirements list first (allows caching for faster builds)
+COPY requirements.txt .
 
+# Step 4: Run the build tool (pip) to install dependencies inside the image
+RUN pip install --no-cache-dir -r requirements.txt
 
-sudo usermod -aG docker $USER
-newgrp docker
+# Step 5: Copy our application code file into the container
+COPY app.py .
 
+# Step 6: Expose the network port our app runs on
+EXPOSE 8000
 
-sudo usermod -aG docker $USER
-newgrp docker
+# Step 7: The execution command to run when the container starts up
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
