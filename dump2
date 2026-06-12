@@ -1,38 +1,18 @@
-from fastapi import FastAPI
-import redis
-from aiokafka import AIOKafkaProducer
-import asyncio
-import json
+sudo apt update
+sudo apt install ca-certificates curl gnupg -y
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-app = FastAPI()
-cache = redis.Redis(host='localhost', port=6379, decode_responses=True)
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Set up our Kafka Producer (the sender)
-producer = AIOKafkaProducer(bootstrap_servers='localhost:9092')
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
-@app.on_event("startup")
-async def startup_event():
-    # Start the Kafka sender when our app turns on
-    await producer.start()
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    # Stop the sender when the app turns off
-    await producer.stop()
+sudo usermod -aG docker $USER
+newgrp docker
 
-@app.get("/")
-async def read_root():
-    # 1. Update our Redis Cache
-    hits = cache.incr("hits")
-    
-    # 2. Build an event message payload
-    payload = {"event": "page_view", "current_total_views": hits}
-    
-    # 3. Shoot the message into the Kafka "page-views" topic asynchronously
-    await producer.send_and_wait("page-views", json.dumps(payload).encode('utf-8'))
-    
-    return {
-        "message": "Welcome to the Bulletproof Application Platform!",
-        "total_page_views": hits,
-        "kafka_status": "Event sent to queue successfully!"
-    }
+
+sudo usermod -aG docker $USER
+newgrp docker
