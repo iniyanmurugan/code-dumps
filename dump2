@@ -18,3 +18,6 @@ EXPOSE 8000
 
 # Step 7: The execution command to run when the container starts up
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+dckr_pat_fZtBX3wCniQ6M2zPYyFYUbVWxZ4
