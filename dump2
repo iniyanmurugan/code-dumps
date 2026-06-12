@@ -20,7 +20,7 @@ EXPOSE 8000
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
 
 
-dckr_pat_fZtBX3wCniQ6M2zPYyFYUbVWxZ4
+dckr_pat_dsG-WxPFMvDy1-q_TT7xp8LpUOw
 
 
 docker tag bulletproof-app:v1 YOUR_DOCKERHUB_USERNAME/bulletproof-app:v1
